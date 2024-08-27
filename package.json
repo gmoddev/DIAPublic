@@ -1,0 +1,21 @@
+{
+  "name": "diabot",
+  "version": "1.0.0",
+  "description": "Defense Intelligence Agency Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "DIA"
+  ],
+  "author": "Not_Lowest",
+  "license": "CC-BY-4.0",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "path": "^0.12.7",
+    "sqlite3": "^5.1.7",
+    "stack-trace": "^1.0.0-pre2"
+  }
+}

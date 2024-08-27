@@ -1,0 +1,68 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const ranks = require('../config/ranks');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('set-rank')
+        .setDescription('Set a rank for a member.')
+        .addUserOption(option => 
+            option.setName('member')
+                .setDescription('The member to set the rank for')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('rank')
+                .setDescription('The rank to set for the member')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'General', value: 'GENERAL' },
+                    { name: 'Lieutenant General', value: 'LIEUTENANT_GENERAL' },
+                    { name: 'Candidate', value: 'CANDIDATE' },
+                    { name: 'Secret Service', value: 'SECRET_SERVICE' },
+                    { name: 'Police Force', value: 'POLICE_FORCE' },
+                    { name: 'Representative', value: 'REPRESENTATIVE' },
+                    { name: 'Military', value: 'MILITARY' },
+                    { name: 'Director', value: 'DIRECTOR' },
+                    { name: 'Chief of Police', value: 'CHIEF_OF_POLICE' },
+                    { name: 'Brigader General', value: 'BRIGADER_GENERAL' },
+                    { name: 'General Personnel', value: 'GENERAL_PERSONNEL' },
+                    { name: 'Lieutenant', value: 'LIEUTENANT' },
+                    { name: 'Sergeant', value: 'SERGEANT' },
+                    { name: 'Officer', value: 'OFFICER' },
+                    { name: 'Agent', value: 'AGENT' },
+                    { name: 'Private', value: 'PRIVATE' },
+                    { name: 'Corporal', value: 'CORPORAL' },
+                    { name: 'Assistant', value: 'ASSISTANT' }
+                )),
+
+    async execute(interaction) {
+        const member = interaction.options.getMember('member');
+        const selectedRank = interaction.options.getString('rank');
+        const rankRoleID = ranks.ROLES[selectedRank];
+        const coreGuildID = process.env.CORE_GUILD_ID;
+        const coreGuild = interaction.client.guilds.cache.get(coreGuildID);
+
+        if (!rankRoleID) {
+            return interaction.reply({ content: 'Invalid rank specified.', ephemeral: true });
+        }
+
+        const userInCoreGuild = await coreGuild.members.fetch(interaction.user.id);
+        const isAdmin = ranks.ADMIN_HIERARCHY.some(role => userInCoreGuild.roles.cache.has(ranks.ROLES[role]));
+
+        if (!isAdmin) {
+            return interaction.reply({ content: 'You do not have permission to set this rank.', ephemeral: true });
+        }
+
+        const rankRole = coreGuild.roles.cache.get(rankRoleID);
+        if (!rankRole) {
+            return interaction.reply({ content: 'The specified rank role does not exist.', ephemeral: true });
+        }
+
+        try {
+            await member.roles.set([rankRole]);
+            await interaction.reply({ content: `${member.user.tag} has been set to the rank of ${rankRole.name}.`, ephemeral: true });
+        } catch (error) {
+            console.error(`Failed to set rank for ${member.user.tag}: ${error.message}`);
+            await interaction.reply({ content: 'Failed to set the rank. Please try again.', ephemeral: true });
+        }
+    }
+};
